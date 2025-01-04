@@ -1,9 +1,11 @@
 #include <Keyboard.h>
 #include <Mouse.h>
 
+// Configuração dos delays (em milissegundos)
+const int PRESS_DELAY = 50;    // Tempo que a tecla fica pressionada
+const int RELEASE_DELAY = 200; // Tempo de espera após soltar a tecla
+
 // Definição dos pinos de entrada para o teclado Braille
-// Pinos 1-6: representam os 6 pontos do sistema Braille
-// Pinos 7-14: teclas especiais (espaço, enter, tab, backspace, direcionais, mouse)
 const int pinBraille1 = 1;
 const int pinBraille2 = 2;
 const int pinBraille3 = 3;
@@ -22,8 +24,10 @@ const int pinSetaCima = 13;
 const int pinSetaBaixo = 14;
 const int pinCliqueMouse = 15;
 
+// Variável global para controle do modo numérico
+bool modoNumerico = false;
+
 void setup() {
-  // Configuração dos pinos Braille originais
   pinMode(pinBraille1, INPUT_PULLUP);
   pinMode(pinBraille2, INPUT_PULLUP);
   pinMode(pinBraille3, INPUT_PULLUP);
@@ -34,87 +38,76 @@ void setup() {
   pinMode(pinEnter, INPUT_PULLUP);
   pinMode(pinTab, INPUT_PULLUP);
   pinMode(pinBackspace, INPUT_PULLUP);
-
-  // Configuração dos novos pinos
   pinMode(pinSetaEsquerda, INPUT_PULLUP);
   pinMode(pinSetaDireita, INPUT_PULLUP);
   pinMode(pinSetaCima, INPUT_PULLUP);
   pinMode(pinSetaBaixo, INPUT_PULLUP);
   pinMode(pinCliqueMouse, INPUT_PULLUP);
 
-  // Inicializa as bibliotecas de teclado e mouse
   Keyboard.begin();
   Mouse.begin();
 }
 
 void loop() {
-  // Tratamento das teclas especiais originais
+  // Tratamento de teclas especiais
   if (digitalRead(pinEspaco) == LOW) {
     Keyboard.press(' ');
-    delay(50);
+    delay(PRESS_DELAY);
     Keyboard.release(' ');
-    delay(200);
+    delay(RELEASE_DELAY);
   }
-
   if (digitalRead(pinEnter) == LOW) {
     Keyboard.press(KEY_RETURN);
-    delay(50);
+    delay(PRESS_DELAY);
     Keyboard.release(KEY_RETURN);
-    delay(200);
+    delay(RELEASE_DELAY);
   }
-
   if (digitalRead(pinTab) == LOW) {
     Keyboard.press(KEY_TAB);
-    delay(50);
+    delay(PRESS_DELAY);
     Keyboard.release(KEY_TAB);
-    delay(200);
+    delay(RELEASE_DELAY);
   }
-
   if (digitalRead(pinBackspace) == LOW) {
     Keyboard.press(KEY_BACKSPACE);
-    delay(50);
+    delay(PRESS_DELAY);
     Keyboard.release(KEY_BACKSPACE);
-    delay(200);
+    delay(RELEASE_DELAY);
   }
 
-  // Tratamento das novas teclas direcionais
+  // Tratamento das teclas direcionais
   if (digitalRead(pinSetaEsquerda) == LOW) {
     Keyboard.press(KEY_LEFT_ARROW);
-    delay(50);
+    delay(PRESS_DELAY);
     Keyboard.release(KEY_LEFT_ARROW);
-    delay(200);
+    delay(RELEASE_DELAY);
   }
-
   if (digitalRead(pinSetaDireita) == LOW) {
     Keyboard.press(KEY_RIGHT_ARROW);
-    delay(50);
+    delay(PRESS_DELAY);
     Keyboard.release(KEY_RIGHT_ARROW);
-    delay(200);
+    delay(RELEASE_DELAY);
   }
-
   if (digitalRead(pinSetaCima) == LOW) {
     Keyboard.press(KEY_UP_ARROW);
-    delay(50);
+    delay(PRESS_DELAY);
     Keyboard.release(KEY_UP_ARROW);
-    delay(200);
+    delay(RELEASE_DELAY);
   }
-
   if (digitalRead(pinSetaBaixo) == LOW) {
     Keyboard.press(KEY_DOWN_ARROW);
-    delay(50);
+    delay(PRESS_DELAY);
     Keyboard.release(KEY_DOWN_ARROW);
-    delay(200);
+    delay(RELEASE_DELAY);
   }
-
-  // Tratamento do clique do mouse
   if (digitalRead(pinCliqueMouse) == LOW) {
     Mouse.press(MOUSE_LEFT);
-    delay(50);
+    delay(PRESS_DELAY);
     Mouse.release(MOUSE_LEFT);
-    delay(200);
+    delay(RELEASE_DELAY);
   }
 
-  // Armazena o estado atual de cada pino Braille
+  // Armazena o estado dos pinos Braille
   int estadoPinos[] = {
     digitalRead(pinBraille1),
     digitalRead(pinBraille2),
@@ -124,16 +117,104 @@ void loop() {
     digitalRead(pinBraille6)
   };
 
-  // Mapeamento de caracteres Braille (código original mantido)
-  // ... (restante do código de mapeamento de letras seria igual ao original)
+  // Verifica o sinal numérico
+  if (estadoPinos[2] == LOW && estadoPinos[3] == LOW &&
+      estadoPinos[4] == LOW && estadoPinos[5] == LOW &&
+      estadoPinos[0] == HIGH && estadoPinos[1] == HIGH) {
+    modoNumerico = true;
+    delay(PRESS_DELAY);
+    delay(RELEASE_DELAY);
+    return;
+  }
 
-  // Pequeno delay para evitar leituras múltiplas e bounce de botão
-  delay(50);
+  // Mapeamento de números no modo numérico
+  if (modoNumerico) {
+    if (estadoPinos[0] == LOW && estadoPinos[1] == HIGH && estadoPinos[2] == HIGH) {
+      Keyboard.press('1');
+    } else if (estadoPinos[0] == LOW && estadoPinos[1] == LOW) {
+      Keyboard.press('2');
+    } else if (estadoPinos[0] == LOW && estadoPinos[3] == LOW) {
+      Keyboard.press('3');
+    } else if (estadoPinos[0] == LOW && estadoPinos[3] == LOW && estadoPinos[4] == LOW) {
+      Keyboard.press('4');
+    } else if (estadoPinos[0] == LOW && estadoPinos[4] == LOW) {
+      Keyboard.press('5');
+    } else if (estadoPinos[0] == LOW && estadoPinos[1] == LOW && estadoPinos[3] == LOW) {
+      Keyboard.press('6');
+    } else if (estadoPinos[0] == LOW && estadoPinos[1] == LOW && estadoPinos[3] == LOW && estadoPinos[4] == LOW) {
+      Keyboard.press('7');
+    } else if (estadoPinos[0] == LOW && estadoPinos[1] == LOW && estadoPinos[4] == LOW) {
+      Keyboard.press('8');
+    } else if (estadoPinos[1] == LOW && estadoPinos[3] == LOW) {
+      Keyboard.press('9');
+    } else if (estadoPinos[1] == LOW && estadoPinos[3] == LOW && estadoPinos[4] == LOW) {
+      Keyboard.press('0');
+    }
+    delay(PRESS_DELAY);
+    Keyboard.releaseAll();
+    delay(RELEASE_DELAY);
+    modoNumerico = false;
+    return;
+  }
+
+  // Mapeamento de letras do alfabeto Braille (A-Z)
+
+  if (estadoPinos[0] == LOW && estadoPinos[1] == HIGH) {
+    Keyboard.press('a');
+  } else if (estadoPinos[0] == LOW && estadoPinos[1] == LOW) {
+    Keyboard.press('b');
+  } else if (estadoPinos[0] == LOW && estadoPinos[2] == LOW) {
+    Keyboard.press('c');
+  } else if (estadoPinos[0] == LOW && estadoPinos[2] == LOW && estadoPinos[3] == LOW) {
+    Keyboard.press('d');
+  } else if (estadoPinos[0] == LOW && estadoPinos[3] == LOW) {
+    Keyboard.press('e');
+  } else if (estadoPinos[0] == LOW && estadoPinos[1] == LOW && estadoPinos[2] == LOW) {
+    Keyboard.press('f');
+  } else if (estadoPinos[0] == LOW && estadoPinos[1] == LOW && estadoPinos[2] == LOW && estadoPinos[3] == LOW) {
+    Keyboard.press('g');
+  } else if (estadoPinos[0] == LOW && estadoPinos[1] == LOW && estadoPinos[3] == LOW) {
+    Keyboard.press('h');
+  } else if (estadoPinos[1] == LOW && estadoPinos[2] == LOW) {
+    Keyboard.press('i');
+  } else if (estadoPinos[1] == LOW && estadoPinos[2] == LOW && estadoPinos[3] == LOW) {
+    Keyboard.press('j');
+  } else if (estadoPinos[0] == LOW && estadoPinos[4] == LOW) {
+    Keyboard.press('k');
+  } else if (estadoPinos[0] == LOW && estadoPinos[1] == LOW && estadoPinos[4] == LOW) {
+    Keyboard.press('l');
+  } else if (estadoPinos[0] == LOW && estadoPinos[2] == LOW && estadoPinos[4] == LOW) {
+    Keyboard.press('m');
+  } else if (estadoPinos[0] == LOW && estadoPinos[2] == LOW && estadoPinos[3] == LOW && estadoPinos[4] == LOW) {
+    Keyboard.press('n');
+  } else if (estadoPinos[0] == LOW && estadoPinos[3] == LOW && estadoPinos[4] == LOW) {
+    Keyboard.press('o');
+  } else if (estadoPinos[0] == LOW && estadoPinos[1] == LOW && estadoPinos[2] == LOW && estadoPinos[4] == LOW) {
+    Keyboard.press('p');
+  } else if (estadoPinos[0] == LOW && estadoPinos[1] == LOW && estadoPinos[2] == LOW && estadoPinos[3] == LOW && estadoPinos[4] == LOW) {
+    Keyboard.press('q');
+  } else if (estadoPinos[0] == LOW && estadoPinos[1] == LOW && estadoPinos[3] == LOW && estadoPinos[4] == LOW) {
+    Keyboard.press('r');
+  } else if (estadoPinos[1] == LOW && estadoPinos[2] == LOW && estadoPinos[4] == LOW) {
+    Keyboard.press('s');
+  } else if (estadoPinos[1] == LOW && estadoPinos[2] == LOW && estadoPinos[3] == LOW && estadoPinos[4] == LOW) {
+    Keyboard.press('t');
+  } else if (estadoPinos[0] == LOW && estadoPinos[4] == LOW && estadoPinos[5] == LOW) {
+    Keyboard.press('u');
+  } else if (estadoPinos[0] == LOW && estadoPinos[1] == LOW && estadoPinos[4] == LOW && estadoPinos[5] == LOW) {
+    Keyboard.press('v');
+  } else if (estadoPinos[1] == LOW && estadoPinos[2] == LOW && estadoPinos[3] == LOW && estadoPinos[5] == LOW) {
+    Keyboard.press('w');
+  } else if (estadoPinos[0] == LOW && estadoPinos[2] == LOW && estadoPinos[4] == LOW && estadoPinos[5] == LOW) {
+    Keyboard.press('x');
+  } else if (estadoPinos[0] == LOW && estadoPinos[2] == LOW && estadoPinos[3] == LOW && estadoPinos[4] == LOW && estadoPinos[5] == LOW) {
+    Keyboard.press('y');
+  } else if (estadoPinos[0] == LOW && estadoPinos[3] == LOW && estadoPinos[4] == LOW && estadoPinos[5] == LOW) {
+    Keyboard.press('z');
+  }
+
+  delay(PRESS_DELAY);
+  Keyboard.releaseAll();
+  delay(RELEASE_DELAY);
 }
 
-// NOTAS IMPORTANTES:
-// 1. Este código é para Arduino Leonardo, que possui suporte nativo para HID (teclado e mouse)
-// 2. A lógica assume que os pinos são conectados com pull-up interno
-// 3. Adicionadas teclas direcionais e clique do mouse
-// 4. Pode ser necessário ajustar os delays conforme a sensibilidade dos botões
-// 5. Recomenda-se testar cada combinação individualmente
